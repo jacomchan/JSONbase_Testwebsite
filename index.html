@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Submit Form to JSONBin</title>
+</head>
+<body>
+  <h1>Contact Form</h1>
+  <form id="contact-form">
+    <input type="text" name="name" placeholder="Your Name" required><br><br>
+    <textarea name="message" placeholder="Your Message" required></textarea><br><br>
+    <button type="submit">Submit</button>
+  </form>
+
+  <p id="status"></p>
+
+  <script>
+    const API_KEY = '$2a$10$fGunwESGH8.OtuEaB96Wzed08gncjfTpIra9yM5x76cszXZbaIazy';
+    const BIN_ID = '682761368561e97a501532dc';
+    const BIN_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}/latest`;
+    const UPDATE_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
+
+    const headers = {
+      "Content-Type": "application/json",
+      "X-Master-Key": API_KEY
+    };
+
+    document.getElementById('contact-form').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const formData = new FormData(this);
+      const name = formData.get('name');
+      const message = formData.get('message');
+
+      // Step 1: Get current data
+      fetch(BIN_URL, { headers })
+        .then(res => res.json())
+        .then(data => {
+          const entries = data.record;
+          entries.push({ name, message, timestamp: new Date().toISOString() });
+
+          // Step 2: Update bin with new data
+          return fetch(UPDATE_URL, {
+            method: 'PUT',
+            headers,
+            body: JSON.stringify(entries)
+          });
+        })
+        .then(res => res.json())
+        .then(() => {
+          document.getElementById('status').textContent = "Submitted successfully!";
+          document.getElementById('contact-form').reset();
+        })
+        .catch(err => {
+          console.error(err);
+          document.getElementById('status').textContent = "Error submitting the form.";
+        });
+    });
+  </script>
+</body>
+</html>
